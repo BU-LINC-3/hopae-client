@@ -23,15 +23,18 @@ class MainActivity : AppCompatActivity() {
             .build()
 
         var loginService = retrofit.create(LoginService::class.java)
+        var loginCheck = retrofit.create(LoginCheck::class.java)
 
 
         btn_login.setOnClickListener(){
             var textId = ed_id.text.toString()
             var textPw = ed_pw.text.toString()
 
+            // loginServie.requestLogin(textId, textPw).enqueue(object : Callback<Login>
             loginService.requestLogin(textId, textPw).enqueue(object : Callback<Login>{
                 override fun onFailure(call: Call<Login>, t: Throwable) {
-                    // 통신 실패
+                    // 통신 실패, t: Throwable
+//                    Log.d("DEBUG", t.toString())
                     var dialog = AlertDialog.Builder(this@MainActivity)
                     dialog.setTitle("실패!")
                     dialog.setMessage("통신에 실패")
