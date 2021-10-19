@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:hopae/arch/observable.dart';
 import 'package:hopae/helper/helper.dart';
@@ -43,6 +45,7 @@ class _HomePageState extends State<HomePage> {
             _port = data.data.port;
             _alias = data.data.alias;
             _sessionId = data.response.headers.value("set-cookie")!.split(";")[0];
+
             _dataProvider.requestInvitation(_port!, _alias!);
         }));
 
@@ -58,22 +61,46 @@ class _HomePageState extends State<HomePage> {
         _dataProvider.getAlias!.addObserver(Observer((data) {
             if (data != "") {
                 _alias = data;
-                _dataProvider.requestWallet(_port!);
+                _dataProvider.requestIsInvitationSuccess(_port!, _alias!);
             } else {
                 _dataProvider.requestSession(widget.univerGu, widget.userId, widget.userPw);
             }
         }));
 
         _dataProvider.getInvitation!.addObserver(Observer((data) {
-            Helper.navigateRoute(context, QRPage(qrData: IssueQR(sessionId: _sessionId, invitation: data).toJson()));
+            _dataProvider.requestSetPort(_port!);
+            _dataProvider.requestSetAlias(_alias!);
+            Helper.navigateRoute(context, QRPage(qrData: IssueQR(
+                sessionId: _sessionId, 
+                invitation: data
+            ).toJson()));
+        }));
+        
+        _dataProvider.getInvitationSuccess!.addObserver(Observer((data) {
+            if (data) {
+                _dataProvider.requestCredential(_port!);
+            } else {
+                _dataProvider.requestSession(widget.univerGu, widget.userId, widget.userPw);
+            }
         }));
 
         _dataProvider.getCredentials!.addObserver(Observer((data) {
-
+            if (data.isNotEmpty) {
+                Helper.navigateRoute(context, QRPage(
+                    qrData: ProofQR(
+                        alias: _alias, 
+                        credRevId: data['cred_rev_id'], 
+                        revRegId: data['rev_reg_id']
+                    ).toJson(),
+                    extraText: jsonEncode(data),
+                ));
+            } else {
+                _dataProvider.requestClearAgentInfo();
+            }
         }));
 
         _dataProvider.getWallet!.addObserver(Observer((data) {
-            _dataProvider.requestCredential(_port!);
+
         }));
         
     }
@@ -82,28 +109,52 @@ class _HomePageState extends State<HomePage> {
     Widget build(BuildContext context) {
         return Scaffold(
             backgroundColor: Theme.of(context).backgroundColor,
-            body: Column(
-                children: [
-                    Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: Sizes.safeAreaHorizontal * 2, vertical: Sizes.safeAreaVertical),
-                        child: Material(
-                            color: Colors.blueAccent,
-                            child: InkWell(
-                                onTap: () => _dataProvider.requestGetPort(),
-                                child: const Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: Sizes.safeAreaHorizontal, vertical: Sizes.safeAreaVertical / 2),
-                                    child: Text(
-                                        "QR",
-                                        style: TextStyle(
-                                            fontSize: Sizes.fontSizeContents,
-                                            color: Colors.white,
+            body: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: Sizes.safeAreaHorizontal * 2, vertical: Sizes.safeAreaVertical * 2),
+                child: Column(
+                    children: [
+                        SizedBox( 
+                            width: double.infinity,
+                            child: Material(
+                                color: Colors.blueAccent,
+                                child: InkWell(
+                                    onTap: () => _dataProvider.requestGetPort(),
+                                    child: const Padding(
+                                        padding: EdgeInsets.symmetric(horizontal: Sizes.safeAreaHorizontal, vertical: Sizes.safeAreaVertical / 2),
+                                        child: Text(
+                                            "QR 코드 인증하기",
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                                fontSize: Sizes.fontSizeContents,
+                                                color: Colors.white,
+                                            ),
                                         ),
                                     ),
                                 ),
                             ),
-                        )
-                    ),
-                ],
+                        ),
+                        SizedBox( 
+                            width: double.infinity,
+                            child: Material(
+                                color: Colors.red,
+                                child: InkWell(
+                                    onTap: () => _dataProvider.requestSession(widget.univerGu, widget.userId, widget.userPw),
+                                    child: const Padding(
+                                        padding: EdgeInsets.symmetric(horizontal: Sizes.safeAreaHorizontal, vertical: Sizes.safeAreaVertical / 2),
+                                        child: Text(
+                                            "QR 새로 발급하기",
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                                fontSize: Sizes.fontSizeContents,
+                                                color: Colors.white,
+                                            ),
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ],
+                ),
             ),
         );
     }

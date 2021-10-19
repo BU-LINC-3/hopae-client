@@ -40,9 +40,9 @@ class _AriesService implements AriesService {
   }
 
   @override
-  Future<String> requestCredentials(port, count) async {
+  Future<String> requestCredentials(port) async {
     const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{r'count': count};
+    final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     final _result = await _dio.fetch<String>(_setStreamType<String>(
@@ -67,6 +67,21 @@ class _AriesService implements AriesService {
                     queryParameters: queryParameters, data: _data)
                 .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
     final value = Wallet.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<String> requestConnections(port, alias, state) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'alias': alias, r'state': state};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    final _result = await _dio.fetch<String>(_setStreamType<String>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(_dio.options, ':$port/connections',
+                queryParameters: queryParameters, data: _data)
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+    final value = _result.data!;
     return value;
   }
 

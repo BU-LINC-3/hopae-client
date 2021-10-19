@@ -5,8 +5,9 @@ import 'package:qr_flutter/qr_flutter.dart';
 class QRPage extends StatefulWidget {
 
     final String qrData;
+    final String extraText;
 
-    const QRPage({ Key? key, required this.qrData }) : super(key: key);
+    const QRPage({ Key? key, required this.qrData, this.extraText = "" }) : super(key: key);
 
     @override
     _QRPageState createState() => _QRPageState();
@@ -33,6 +34,7 @@ class _QRPageState extends State<QRPage> {
                             errorCorrectionLevel: QrErrorCorrectLevel.Q,
                             padding: const EdgeInsets.symmetric(vertical: Sizes.safeAreaHorizontal, horizontal: Sizes.safeAreaHorizontal),
                         ),
+                        Text(widget.extraText),
                     ]
                 ),
             ),

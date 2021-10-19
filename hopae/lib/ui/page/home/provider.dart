@@ -24,14 +24,20 @@ class HomeDataProvider extends DataProvider {
     ObservableData<Wallet>? _wallet;
     ObservableData<Map<String, dynamic>>? _credentials;
     ObservableData<Map<String, dynamic>>? _invitation;
+    ObservableData<bool>? _invitationSuccess;
 
     void requestSession(int univerGu, String userId, String userPw) {
         _service.requestSession(univerGu, userId, userPw).then((value) => _sessionInfo!.setData(value));
     }
 
+    void requestClearAgentInfo() {
+        _prefService.removeAlias();
+    }
+
     void requestSetPort(int port) {
         _prefService.setPort(port);
     }
+    
 
     void requestGetPort() {
         _prefService.getPort().then((value) => _port!.setData(value));
@@ -50,11 +56,19 @@ class HomeDataProvider extends DataProvider {
     }
 
     void requestCredential(int port) {
-        _ariesService.requestCredentials(port, 1).then((value) => _credentials!.setData(jsonDecode(value)['results'][0]));
+        _ariesService.requestCredentials(port).then((value) {
+            List<dynamic> result = (jsonDecode(value)['results'] as List);
+            result.sort((a, b) => int.parse(a['cred_rev_id']).compareTo(int.parse(b['cred_rev_id'])));
+            _credentials!.setData(result.last);
+        });
     }
 
     void requestInvitation(int port, String alias) {
         _ariesService.requestCreateInvitation("{}", port, alias, true).then((value) => _invitation!.setData(jsonDecode(value)['invitation']));
+    }
+
+    void requestIsInvitationSuccess(int port, String alias) {
+        _ariesService.requestConnections(port, alias, "active").then((value) => _invitationSuccess!.setData((jsonDecode(value)['results'] as List).isNotEmpty));
     }
 
     ObservableData<HttpResponse<SessionInfo>>? get getSessionInfo {
@@ -91,5 +105,11 @@ class HomeDataProvider extends DataProvider {
         _invitation ??= ObservableData();
 
         return _invitation;
+    }
+
+    ObservableData<bool>? get getInvitationSuccess {
+        _invitationSuccess ??= ObservableData();
+
+        return _invitationSuccess;
     }
 }

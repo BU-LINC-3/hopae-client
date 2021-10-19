@@ -24,12 +24,18 @@ abstract class AriesService {
     
     @GET(":{port}/credentials")
     Future<String> requestCredentials(
-        @Path("port") int port,
-        @Query("count") int count
+        @Path("port") int port
     );
     
     @GET(":{port}/wallet/did")
     Future<Wallet> requestWallet(
         @Path("port") int port
+    );
+    
+    @GET(":{port}/connections")
+    Future<String> requestConnections(
+        @Path("port") int port,
+        @Query("alias") String alias,
+        @Query("state") String state
     );
 }
