@@ -24,10 +24,17 @@ class _QRPageState extends State<QRPage> {
     Widget build(BuildContext context) {
         return Scaffold(
             backgroundColor: Theme.of(context).backgroundColor,
-            body: QrImage(
-                data: widget.qrData,
-                errorCorrectionLevel: QrErrorCorrectLevel.H,
-                padding: const EdgeInsets.symmetric(vertical: Sizes.safeAreaHorizontal, horizontal: Sizes.safeAreaHorizontal),
+            body: Padding(
+                padding: const EdgeInsets.symmetric(vertical: Sizes.safeAreaVertical * 2),
+                child: Column(
+                    children: [
+                        QrImage(
+                            data: widget.qrData,
+                            errorCorrectionLevel: QrErrorCorrectLevel.Q,
+                            padding: const EdgeInsets.symmetric(vertical: Sizes.safeAreaHorizontal, horizontal: Sizes.safeAreaHorizontal),
+                        ),
+                    ]
+                ),
             ),
         );
     }
