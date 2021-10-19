@@ -113,6 +113,14 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.symmetric(horizontal: Sizes.safeAreaHorizontal * 2, vertical: Sizes.safeAreaVertical * 2),
                 child: Column(
                     children: [
+                        Expanded(
+                            child: Text(
+                                "port: ${_port}\nalias: ${_alias}\nusername: ${widget.loginInfo.userName}\nuserid: ${widget.userId}",
+                                style: const TextStyle(
+                                    fontSize: Sizes.fontSizeContents,
+                                ),
+                            ),
+                        ),
                         SizedBox( 
                             width: double.infinity,
                             child: Material(
@@ -133,6 +141,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
                             ),
                         ),
+                        Divider(),
                         SizedBox( 
                             width: double.infinity,
                             child: Material(
