@@ -1,18 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:hopae/ui/widget/blur.dart';
 
 class Helper {
 
     static void navigateRoute(BuildContext context, Widget child) {
         Navigator.of(context).push(
-            PageRouteBuilder(
-                opaque: false,
-                transitionDuration: const Duration(milliseconds: 500),
-                pageBuilder: (context, animation, secondaryAnimation) => BlurTransition(
-                    animation: Tween<double>(begin: 30.0, end: 0.0).animate(animation),
-                    child: child,
-                ),
-            ),
+            MaterialPageRoute(builder: (context) => child)
         );
     }
 

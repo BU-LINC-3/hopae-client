@@ -1,9 +1,10 @@
+import 'package:hopae/repository/aries/model.dart';
 import 'package:retrofit/retrofit.dart';
 import 'package:dio/dio.dart' hide Headers;
 
 part 'service.g.dart';
 
-@RestApi(baseUrl: "https://www.bu.ac.kr")
+@RestApi(baseUrl: "http://192.168.137.1")
 abstract class AriesService {
 
     factory AriesService({ String? baseUrl }) {
@@ -12,11 +13,23 @@ abstract class AriesService {
         return _AriesService(dio);
     }
 
-    @POST("/subLogin/web/login.do")
-    Future<HttpResponse> requestLogin(
-        @Query("univerGu") int univerGu,
-        @Query("userId") String userId,
-        @Query("userPwd") String userPw
+    @POST(":{port}/connections/create-invitation")
+    @Headers({ "Content-Type": "application/json;charset=utf-8" })
+    Future<String> requestCreateInvitation(
+        @Body() String body,
+        @Path("port") int port,
+        @Query("alias") String alias,
+        @Query("auto_accept") bool autoAccept
     );
     
+    @GET(":{port}/credentials")
+    Future<String> requestCredentials(
+        @Path("port") int port,
+        @Query("count") int count
+    );
+    
+    @GET(":{port}/wallet/did")
+    Future<Wallet> requestWallet(
+        @Path("port") int port
+    );
 }

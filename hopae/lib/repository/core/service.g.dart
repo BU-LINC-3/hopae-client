@@ -8,7 +8,7 @@ part of 'service.dart';
 
 class _CoreService implements CoreService {
   _CoreService(this._dio, {this.baseUrl}) {
-    baseUrl ??= 'http://192.168.0.11';
+    baseUrl ??= 'http://192.168.137.1:8080';
   }
 
   final Dio _dio;

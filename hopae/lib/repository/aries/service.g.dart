@@ -8,7 +8,7 @@ part of 'service.dart';
 
 class _AriesService implements AriesService {
   _AriesService(this._dio, {this.baseUrl}) {
-    baseUrl ??= 'https://www.bu.ac.kr';
+    baseUrl ??= 'http://192.168.137.1';
   }
 
   final Dio _dio;
@@ -16,23 +16,58 @@ class _AriesService implements AriesService {
   String? baseUrl;
 
   @override
-  Future<HttpResponse<dynamic>> requestLogin(univerGu, userId, userPw) async {
+  Future<String> requestCreateInvitation(body, port, alias, autoAccept) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
-      r'univerGu': univerGu,
-      r'userId': userId,
-      r'userPwd': userPw
+      r'alias': alias,
+      r'auto_accept': autoAccept
     };
+    final _headers = <String, dynamic>{
+      r'Content-Type': 'application/json;charset=utf-8'
+    };
+    _headers.removeWhere((k, v) => v == null);
+    final _data = body;
+    final _result = await _dio.fetch<String>(_setStreamType<String>(Options(
+            method: 'POST',
+            headers: _headers,
+            extra: _extra,
+            contentType: 'application/json;charset=utf-8')
+        .compose(_dio.options, ':$port/connections/create-invitation',
+            queryParameters: queryParameters, data: _data)
+        .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+    final value = _result.data!;
+    return value;
+  }
+
+  @override
+  Future<String> requestCredentials(port, count) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'count': count};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
-    final _result = await _dio.fetch(_setStreamType<HttpResponse<dynamic>>(
-        Options(method: 'POST', headers: _headers, extra: _extra)
-            .compose(_dio.options, '/subLogin/web/login.do',
+    final _result = await _dio.fetch<String>(_setStreamType<String>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(_dio.options, ':$port/credentials',
                 queryParameters: queryParameters, data: _data)
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
-    final value = _result.data;
-    final httpResponse = HttpResponse(value, _result);
-    return httpResponse;
+    final value = _result.data!;
+    return value;
+  }
+
+  @override
+  Future<Wallet> requestWallet(port) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+        _setStreamType<Wallet>(
+            Options(method: 'GET', headers: _headers, extra: _extra)
+                .compose(_dio.options, ':$port/wallet/did',
+                    queryParameters: queryParameters, data: _data)
+                .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+    final value = Wallet.fromJson(_result.data!);
+    return value;
   }
 
   RequestOptions _setStreamType<T>(RequestOptions requestOptions) {

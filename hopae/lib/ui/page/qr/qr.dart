@@ -1,20 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:hopae/arch/observable.dart';
-import 'package:hopae/repository/bu/model.dart';
-import 'package:hopae/ui/page/qr/provider.dart';
+import 'package:hopae/ui/widget/sizes.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 class QRPage extends StatefulWidget {
 
-    final LoginInfo loginInfo;
-    final int univerGu;
-    final String userId;
-    final String userPw;
+    final String qrData;
 
-    const QRPage({ 
-        required this.loginInfo, 
-        required this.univerGu, required this.userId, required this.userPw, 
-        Key? key 
-    }) : super(key: key);
+    const QRPage({ Key? key, required this.qrData }) : super(key: key);
 
     @override
     _QRPageState createState() => _QRPageState();
@@ -22,25 +14,21 @@ class QRPage extends StatefulWidget {
 
 class _QRPageState extends State<QRPage> {
 
-    final QRDataProvider _dataProvider = QRDataProvider();
 
     @override
     void initState() {
         super.initState();
-        initObservers();
-        _dataProvider.requestSession(widget.univerGu, widget.userId, widget.userPw);
-    }
-
-    void initObservers() {
-        _dataProvider.getSessionInfo!.addObserver(Observer((data) {
-
-        }));
     }
 
     @override
     Widget build(BuildContext context) {
         return Scaffold(
             backgroundColor: Theme.of(context).backgroundColor,
+            body: QrImage(
+                data: widget.qrData,
+                errorCorrectionLevel: QrErrorCorrectLevel.H,
+                padding: const EdgeInsets.symmetric(vertical: Sizes.safeAreaHorizontal, horizontal: Sizes.safeAreaHorizontal),
+            ),
         );
     }
 }

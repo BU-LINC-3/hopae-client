@@ -1,16 +1,33 @@
-class SessionInfo {
+class Wallet {
     
-    final int? port;
+    final List<DID>? didList;
 
-    final String? alias;
+    const Wallet({ this.didList });
 
-    const SessionInfo({ this.port, this.alias });
-
-    factory SessionInfo.fromJson(Map<String, dynamic> json) {
-        return SessionInfo(
-            port: json['port'],
-            alias: json['alias']
+    factory Wallet.fromJson(Map<String, dynamic> json) {
+        return Wallet(
+            didList: (json['result'] as List).map((e) => DID.fromJson(e)).toList()
         );
     }
 
+    DID get getLatestDID {
+        return didList!.first;
+    }
+}
+
+class DID {
+    
+    final String? did;
+    final String? verkey;
+    final String? posture;
+
+    const DID({ this.did, this.verkey, this.posture });
+
+    factory DID.fromJson(Map<String, dynamic> json) {
+        return DID(
+            did: json['did'],
+            verkey: json['verkey'],
+            posture: json['posture']
+        );
+    }
 }

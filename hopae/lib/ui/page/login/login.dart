@@ -3,7 +3,7 @@ import 'package:hopae/arch/observable.dart';
 import 'package:hopae/helper/helper.dart';
 import 'package:hopae/repository/bu/model.dart';
 import 'package:hopae/ui/page/login/provider.dart';
-import 'package:hopae/ui/page/qr/qr.dart';
+import 'package:hopae/ui/page/home/home.dart';
 import 'package:hopae/ui/widget/sizes.dart';
 
 class LoginPage extends StatefulWidget {
@@ -24,6 +24,7 @@ class _LoginPageState extends State<LoginPage> {
     void initState() {
         super.initState();
         initObservers();
+        _dataProvider.requestGetUserId();
     }
 
     void initObservers() {
@@ -36,13 +37,33 @@ class _LoginPageState extends State<LoginPage> {
         }));
 
         _dataProvider.getLoginInfo!.addObserver(Observer((data) {
-            
-            Helper.navigateRoute(context, QRPage(
+            _dataProvider.requestSetUserId(_userId!);
+            _dataProvider.requestSetUserPw(_userPw!);
+
+            Helper.navigateRoute(context, HomePage(
                 loginInfo: data, 
                 univerGu: 1,
                 userId: _userId!,
                 userPw: _userPw!,
             ));
+        }));
+
+        _dataProvider.getUserId!.addObserver(Observer((data) {
+            if (data != "") {
+                setState(() {
+                    _userId = data;
+                });
+                _dataProvider.requestGetUserPw();
+            }
+        }));
+
+        _dataProvider.getUserPw!.addObserver(Observer((data) {
+            if (data != "") {
+                setState(() {
+                    _userPw = data;
+                });
+                _dataProvider.requestLogin(1, _userId!, _userPw!);
+            }
         }));
     }
 
@@ -130,9 +151,7 @@ class _LoginPageState extends State<LoginPage> {
                         child: Material(
                             color: Colors.blueAccent,
                             child: InkWell(
-                                onTap: () {
-                                    _dataProvider.requestLogin(1, _userId!, _userPw!);
-                                },
+                                onTap: () => _dataProvider.requestLogin(1, _userId!, _userPw!),
                                 child: const Padding(
                                     padding: EdgeInsets.symmetric(horizontal: Sizes.safeAreaHorizontal, vertical: Sizes.safeAreaVertical / 2),
                                     child: Text(

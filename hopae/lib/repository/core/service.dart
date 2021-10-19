@@ -4,7 +4,7 @@ import 'package:dio/dio.dart' hide Headers;
 
 part 'service.g.dart';
 
-@RestApi(baseUrl: "http://192.168.0.11")
+@RestApi(baseUrl: "http://192.168.137.1:8080")
 abstract class CoreService {
 
     factory CoreService({ String? baseUrl }) {
