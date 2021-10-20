@@ -4,7 +4,7 @@ class Helper {
 
     static void navigateRoute(BuildContext context, Widget child) {
         Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => child)
+            MaterialPageRoute(builder: (context) => child, maintainState: false)
         );
     }
 
