@@ -26,6 +26,12 @@ abstract class AriesService {
     Future<String> requestCredentials(
         @Path("port") int port
     );
+
+    @DELETE(":{port}/credential/{cred_id}")
+    Future<HttpResponse> requestDelCredentials(
+        @Path("port") int port,
+        @Path("cred_id") String credId,
+    );
     
     @GET(":{port}/wallet/did")
     Future<Wallet> requestWallet(

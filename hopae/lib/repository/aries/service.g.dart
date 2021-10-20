@@ -55,6 +55,22 @@ class _AriesService implements AriesService {
   }
 
   @override
+  Future<HttpResponse<dynamic>> requestDelCredentials(port, credId) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    final _result = await _dio.fetch(_setStreamType<HttpResponse<dynamic>>(
+        Options(method: 'DELETE', headers: _headers, extra: _extra)
+            .compose(_dio.options, ':$port/credential/$credId',
+                queryParameters: queryParameters, data: _data)
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+    final value = _result.data;
+    final httpResponse = HttpResponse(value, _result);
+    return httpResponse;
+  }
+
+  @override
   Future<Wallet> requestWallet(port) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};

@@ -111,17 +111,43 @@ class _HomePageState extends State<HomePage> {
             if (data.isNotEmpty) {
                 _qrData = ProofQR(
                     alias: _alias, 
-                    credRevId: data['cred_rev_id'], 
-                    revRegId: data['rev_reg_id']
+                    credRevId: data.last['cred_rev_id'], 
+                    revRegId: data.last['rev_reg_id']
                 ).toJson();
 
                 setState(() {
-                    _credential = data;
-                    _isLoading = false;
+                    _credential = data.last;
                     _hasCred = true;
                 });
             } else {
+                init();
                 _dataProvider.requestClearAgentInfo();
+                _dataProvider.requestSession(widget.univerGu, widget.userId, widget.userPw);
+            }
+            setState(() {
+                _isLoading = false;
+            });
+        }));
+
+        _dataProvider.getRevoked!.addObserver(Observer((data) {
+            if (data) {
+                _dataProvider.requestDelCredential(_port!, _credential!['referent']);
+            } else {
+                setState(() {
+                    _isLoading = false;
+                });
+            }
+        }));
+
+        _dataProvider.getDeleted!.addObserver(Observer((data) {
+            if (data) {
+                init();
+                _dataProvider.requestClearAgentInfo();
+                _dataProvider.requestSession(widget.univerGu, widget.userId, widget.userPw);
+            } else {
+                setState(() {
+                    _isLoading = false;
+                });
             }
         }));
     }
@@ -250,7 +276,7 @@ class _HomePageState extends State<HomePage> {
                                                             content: SingleChildScrollView(
                                                                 child: ListBody(
                                                                     children: const <Widget>[
-                                                                        Text("기존 출입증 정보가 기기에서 제거됩니다."),
+                                                                        Text("기존 출입증 정보가 제거됩니다."),
                                                                         Text("정말 새로 발급 받으시겠습니까?"),
                                                                     ],
                                                                 ),
@@ -265,9 +291,10 @@ class _HomePageState extends State<HomePage> {
                                                                 TextButton(
                                                                     child: const Text("예"),
                                                                     onPressed: () {
-                                                                        init();
-                                                                        _dataProvider.requestClearAgentInfo();
-                                                                        _dataProvider.requestSession(widget.univerGu, widget.userId, widget.userPw);
+                                                                        setState(() {
+                                                                            _isLoading = true;
+                                                                        });
+                                                                        _dataProvider.requestRevoke(_credential!['cred_rev_id'], _credential!['rev_reg_id']);
                                                                         Navigator.of(context).pop();
                                                                     },
                                                                 ),

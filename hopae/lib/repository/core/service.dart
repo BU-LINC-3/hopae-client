@@ -19,5 +19,11 @@ abstract class CoreService {
         @Query("userId") String userId,
         @Query("userPw") String userPw
     );
+
+    @GET("/api/did/issuer/revoke-credential")
+    Future<String> requestRevoke(
+        @Query("credRevId") String credRevId,
+        @Query("revRegId") String revRegId
+    );
     
 }

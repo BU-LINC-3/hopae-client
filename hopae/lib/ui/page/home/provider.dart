@@ -22,10 +22,13 @@ class HomeDataProvider extends DataProvider {
     ObservableData<String>? _alias;
     
     ObservableData<Wallet>? _wallet;
-    ObservableData<Map<String, dynamic>>? _credentials;
+    ObservableData<List<dynamic>>? _credentials;
     ObservableData<Map<String, dynamic>>? _invitation;
     ObservableData<bool>? _invitationSuccess;
     ObservableData<String>? _did;
+
+    ObservableData<bool>? _revoked;
+    ObservableData<bool>? _deleted;
 
     void requestSession(int univerGu, String userId, String userPw) {
         _service.requestSession(univerGu, userId, userPw).then((value) => _sessionInfo!.setData(value));
@@ -61,7 +64,7 @@ class HomeDataProvider extends DataProvider {
         _ariesService.requestCredentials(port).then((value) {
             List<dynamic> result = (jsonDecode(value)['results'] as List);
             result.sort((a, b) => int.parse(a['cred_rev_id']).compareTo(int.parse(b['cred_rev_id'])));
-            _credentials!.setData(result.last);
+            _credentials!.setData(result);
         });
     }
 
@@ -77,6 +80,14 @@ class HomeDataProvider extends DataProvider {
                 _did!.setData(connections.first['my_did']);
             }
         });
+    }
+
+    void requestDelCredential(int port, String credId) {
+        _ariesService.requestDelCredentials(port, credId).then((value) => _deleted!.setData(value.response.statusCode == 200));
+    }
+
+    void requestRevoke(String credRevId, String revRegId) {
+        _service.requestRevoke(credRevId, revRegId).then((value) => _revoked!.setData((jsonDecode(value)['revoked'] as bool)));
     }
 
     ObservableData<HttpResponse<SessionInfo>>? get getSessionInfo {
@@ -103,7 +114,7 @@ class HomeDataProvider extends DataProvider {
         return _wallet;
     }
 
-    ObservableData<Map<String, dynamic>>? get getCredentials {
+    ObservableData<List<dynamic>>? get getCredentials {
         _credentials ??= ObservableData();
 
         return _credentials;
@@ -125,5 +136,17 @@ class HomeDataProvider extends DataProvider {
         _did ??= ObservableData();
 
         return _did;
+    }
+
+    ObservableData<bool>? get getDeleted {
+        _deleted ??= ObservableData();
+
+        return _deleted;
+    }
+
+    ObservableData<bool>? get getRevoked {
+        _revoked ??= ObservableData();
+
+        return _revoked;
     }
 }
