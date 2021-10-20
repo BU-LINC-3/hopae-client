@@ -34,8 +34,10 @@ class _HomePageState extends State<HomePage> {
     String? _sessionId;
 
     String? _qrData;
+    String? _did;
 
     Map<String, dynamic>? _credential;
+    Map<String, dynamic>? _invitation;
 
     bool? _isLoading;
     bool? _hasCred;
@@ -85,6 +87,7 @@ class _HomePageState extends State<HomePage> {
             ).toJson();
 
             setState(() {
+                _invitation = data;
                 _isLoading = false;
                 _hasCred = false;
             });
@@ -98,6 +101,12 @@ class _HomePageState extends State<HomePage> {
             }
         }));
 
+        _dataProvider.getDID!.addObserver(Observer((data) {
+            setState(() {
+                _did = data;
+            });
+        }));
+
         _dataProvider.getCredentials!.addObserver(Observer((data) {
             if (data.isNotEmpty) {
                 _qrData = ProofQR(
@@ -106,9 +115,8 @@ class _HomePageState extends State<HomePage> {
                     revRegId: data['rev_reg_id']
                 ).toJson();
 
-                _credential = data;
-
                 setState(() {
+                    _credential = data;
                     _isLoading = false;
                     _hasCred = true;
                 });
@@ -178,7 +186,7 @@ class _HomePageState extends State<HomePage> {
                                             child: Padding(
                                                 padding: EdgeInsets.only(left: 24, right: 24, top: 6),
                                                 child: Text(
-                                                    "현재 출입증",
+                                                    "출입증 정보",
                                                     style: TextStyle(
                                                         fontSize: Sizes.fontSizeContents,
                                                         fontWeight: FontWeight.bold,
@@ -187,7 +195,7 @@ class _HomePageState extends State<HomePage> {
                                             ),
                                         ),
                                         const Divider(),
-                                    ] + credentialInfo(_credential) + [
+                                    ] + credentialInfo(_credential, Sizes.fontSizeContents) + [
                                         const Divider(),
                                     ],
                                 ),
@@ -206,7 +214,7 @@ class _HomePageState extends State<HomePage> {
                                             if (_hasCred ??= false) {
                                                 Helper.navigateRoute(context, QRPage(
                                                     qrData: _qrData!,
-                                                    extraText: credentialInfo(_credential),
+                                                    extraText: credentialInfo(_credential, Sizes.fontSizeDescription),
                                                 ));
                                             }
                                         },
@@ -257,7 +265,10 @@ class _HomePageState extends State<HomePage> {
                                                                 TextButton(
                                                                     child: const Text("예"),
                                                                     onPressed: () {
+                                                                        init();
+                                                                        _dataProvider.requestClearAgentInfo();
                                                                         _dataProvider.requestSession(widget.univerGu, widget.userId, widget.userPw);
+                                                                        Navigator.of(context).pop();
                                                                     },
                                                                 ),
                                                             ],
@@ -267,6 +278,26 @@ class _HomePageState extends State<HomePage> {
                                             } else {
                                                 Helper.navigateRoute(context, QRPage(
                                                     qrData: _qrData!,
+                                                    extraText: <Widget>[
+                                                        const Padding(
+                                                            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 6),
+                                                            child: Text(
+                                                                "출입증 발급을 위한 정보가 담겨있습니다.",
+                                                                style: TextStyle(
+                                                                    fontSize: Sizes.fontSizeDescription,
+                                                                ),
+                                                            ),
+                                                        ),
+                                                        Padding(
+                                                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
+                                                            child: Text(
+                                                                "ID: ${_invitation!['@id'] ?? ""}",
+                                                                style: const TextStyle(
+                                                                    fontSize: Sizes.fontSizeDescription,
+                                                                ),
+                                                            ),
+                                                        ),
+                                                    ],
                                                 ));
                                             }
                                         },
@@ -291,32 +322,33 @@ class _HomePageState extends State<HomePage> {
         );
     }
 
-    List<Widget> credentialInfo(Map<String, dynamic>? credential) {
-        return ((credential != null) ? <Widget> [
+    List<Widget> credentialInfo(Map<String, dynamic>? credential, double? fontSize) {
+        return ((credential != null) ? ((_did != null) ? <Widget> [
             Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
                 child: Text(
-                    "측정 체온: \t${int.parse(credential['attrs']['temp']) * 0.1}도",
-                    style: const TextStyle(
-                        fontSize: Sizes.fontSizeContents,
+                    "did:bu:$_did",
+                    style: TextStyle(
+                        fontSize: fontSize,
+                    ),
+                ),
+            ),
+        ] : <Widget> []) + <Widget> [
+            Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
+                child: Text(
+                    "측정 체온: \t${int.parse(credential['attrs']['temp']) / 10}도",
+                    style: TextStyle(
+                        fontSize: fontSize,
                     ),
                 ),
             ),
             Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
                 child: Text(
-                    "출입자 이름: \t${credential['attrs']['name']}",
-                    style: const TextStyle(
-                        fontSize: Sizes.fontSizeContents,
-                    ),
-                ),
-            ),
-            Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
-                child: Text(
-                    "출입자 학번: \t${credential['attrs']['student_id']}",
-                    style: const TextStyle(
-                        fontSize: Sizes.fontSizeContents,
+                    "출입자: \t${credential['attrs']['name']}(${credential['attrs']['student_id']})",
+                    style: TextStyle(
+                        fontSize: fontSize,
                     ),
                 ),
             ),
@@ -324,21 +356,32 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
                 child: Text(
                     "발급 일자: \t${DateTime.fromMillisecondsSinceEpoch(int.parse(credential['attrs']['timestamp']) * 1000).toString()}",
-                    style: const TextStyle(
-                        fontSize: Sizes.fontSizeContents,
+                    style: TextStyle(
+                        fontSize: fontSize,
                     ),
                 ),
             ),
         ] : <Widget> [
-            const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 6),
+            Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
                 child: Text(
                     "출입증 정보가 없습니다.",
                     style: TextStyle(
-                        fontSize: Sizes.fontSizeContents,
+                        fontSize: fontSize,
                     ),
                 ),
             ),
         ]);
+    }
+
+    void init() {
+        _port = null;
+        _alias = null;
+        _sessionId = null;
+        _qrData = null;
+        _did = null;
+        _credential = null;
+        _invitation = null;
+        _hasCred = null;
     }
 }

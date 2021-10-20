@@ -25,12 +25,14 @@ class HomeDataProvider extends DataProvider {
     ObservableData<Map<String, dynamic>>? _credentials;
     ObservableData<Map<String, dynamic>>? _invitation;
     ObservableData<bool>? _invitationSuccess;
+    ObservableData<String>? _did;
 
     void requestSession(int univerGu, String userId, String userPw) {
         _service.requestSession(univerGu, userId, userPw).then((value) => _sessionInfo!.setData(value));
     }
 
     void requestClearAgentInfo() {
+        _prefService.removePort();
         _prefService.removeAlias();
     }
 
@@ -68,7 +70,13 @@ class HomeDataProvider extends DataProvider {
     }
 
     void requestIsInvitationSuccess(int port, String alias) {
-        _ariesService.requestConnections(port, alias, "active").then((value) => _invitationSuccess!.setData((jsonDecode(value)['results'] as List).isNotEmpty));
+        _ariesService.requestConnections(port, alias, "active").then((value) {
+            List<dynamic> connections = (jsonDecode(value)['results'] as List);
+            _invitationSuccess!.setData(connections.isNotEmpty);
+            if (connections.isNotEmpty) {
+                _did!.setData(connections.first['my_did']);
+            }
+        });
     }
 
     ObservableData<HttpResponse<SessionInfo>>? get getSessionInfo {
@@ -111,5 +119,11 @@ class HomeDataProvider extends DataProvider {
         _invitationSuccess ??= ObservableData();
 
         return _invitationSuccess;
+    }
+
+    ObservableData<String>? get getDID {
+        _did ??= ObservableData();
+
+        return _did;
     }
 }
